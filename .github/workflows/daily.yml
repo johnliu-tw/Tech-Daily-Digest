@@ -1,0 +1,34 @@
+name: Tech Daily Digest
+
+on:
+  schedule:
+    # 每天早上 8:00 台灣時間（UTC+8）= 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:  # 允許在 GitHub 上手動觸發（測試用）
+
+jobs:
+  crawl-and-notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Tech Digest
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: "gemini-2.5-flash"
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_TARGET_TYPE: ${{ secrets.LINE_TARGET_TYPE }}
+          LINE_TARGET_ID: ${{ secrets.LINE_TARGET_ID }}
+        run: python src/main.py

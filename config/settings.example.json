@@ -1,0 +1,31 @@
+{
+  "_comment": "複製此檔案為 settings.json 並填入你的 API 金鑰（本機測試用）。正式部署請使用 GitHub Secrets 環境變數。",
+  "gemini": {
+    "api_key": "AIzaSy-xxxx",
+    "model": "gemini-3-flash-preview",
+    "_comment_model": "推薦 gemini-3-flash-preview（thinking model，品質最佳）。需 billing 帳戶。gemini-2.0-flash 可用免費額度。",
+    "_comment_key": "從 https://aistudio.google.com/apikey 取得免費 API Key"
+  },
+  "line": {
+    "channel_access_token": "YOUR_LINE_CHANNEL_ACCESS_TOKEN",
+    "target_type": "user",
+    "_comment_target_type": "選項: 'user'（私人訊息）或 'group'（群組）",
+    "target_id": "YOUR_LINE_USER_ID_OR_GROUP_ID",
+    "_comment_target_id": "user 模式: 用戶的 userId；group 模式: 群組的 groupId"
+  },
+  "crawler": {
+    "lookback_hours": 24,
+    "max_articles_per_source": 5,
+    "_comment_max": "每個來源最多收錄幾篇（web 類型實際檢查數 = max_articles_per_source × 3）",
+    "max_content_chars": 500,
+    "_comment_chars": "每篇文章傳給 Gemini 的最大字元數，越小越省 token",
+    "request_timeout": 15,
+    "user_agent": "Mozilla/5.0 (compatible; TechCrawlerBot/1.0)",
+    "_comment_ua": "web 爬取時建議用接近瀏覽器的 User-Agent，避免被擋"
+  },
+  "output": {
+    "top_events": 5,
+    "summary_language": "zh-TW",
+    "_comment": "摘要語言: 'zh-TW'（繁中）或 'en'（英文）"
+  }
+}

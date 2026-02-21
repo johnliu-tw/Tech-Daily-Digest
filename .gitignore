@@ -1,0 +1,10 @@
+config/settings.json
+__pycache__/
+*.py[cod]
+.env
+!.env.example
+.venv/
+venv/
+*.egg-info/
+dist/
+.claude/

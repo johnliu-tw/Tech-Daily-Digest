@@ -1,0 +1,65 @@
+{
+  "_doc": "type 欄位: 'rss'=RSS/Atom feed | 'sitemap'=XML sitemap | 'web'=通用網頁爬取",
+  "sources": [
+    {
+      "_section": "RSS feeds（效率最高，優先使用）",
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com/rss",
+      "type": "rss",
+      "category": "tech"
+    },
+    {
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/feed/",
+      "type": "rss",
+      "category": "startup"
+    },
+    {
+      "name": "The Verge",
+      "url": "https://www.theverge.com/rss/index.xml",
+      "type": "rss",
+      "category": "tech"
+    },
+    {
+      "name": "InfoQ",
+      "url": "https://feed.infoq.com/",
+      "type": "rss",
+      "category": "engineering"
+    },
+    {
+      "name": "MIT Technology Review",
+      "url": "https://www.technologyreview.com/stories.rss",
+      "type": "rss",
+      "category": "research"
+    },
+    {
+      "name": "AWS Blog",
+      "url": "https://aws.amazon.com/blogs/aws/feed/",
+      "type": "rss",
+      "category": "cloud"
+    },
+    {
+      "name": "GitHub Blog",
+      "url": "https://github.blog/feed/",
+      "type": "rss",
+      "category": "devtools"
+    },
+    {
+      "_section": "Sitemap（有 sitemap 但無 RSS 的網站）",
+      "name": "Google AI Blog",
+      "url": "https://blog.google/sitemap.xml",
+      "type": "sitemap",
+      "category": "ai"
+    },
+    {
+      "_section": "Web 通用爬取（無 RSS / 無 sitemap 的網站）",
+      "_doc": "article_selector 可選；省略時自動偵測文章連結。max_articles 限制抓取數量",
+      "name": "iThome 即時新聞",
+      "url": "https://www.ithome.com.tw/latest",
+      "type": "web",
+      "category": "tech",
+      "article_selector": "h3.title > a",
+      "max_articles": 15
+    }
+  ]
+}
