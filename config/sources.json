@@ -108,6 +108,12 @@
       "url": "https://engineering.mercari.com/en/blog/feed.xml",
       "type": "rss",
       "category": "engineering"
+    },
+    {
+      "name": "掘金",
+      "url": "https://juejin.cn/rss",
+      "type": "rss",
+      "category": "tech"
     }
   ]
 }
