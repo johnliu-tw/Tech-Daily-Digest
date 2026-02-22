@@ -21,7 +21,7 @@ PROMPT_TEMPLATE = """你是一位技術新聞編輯，專門為忙碌的技術�
 以下是過去 24 小時內從各科技媒體抓取的文章列表（JSON 格式）。
 注意：部分文章的 published_at 標記為 "unknown"，請根據內容判斷是否為近期事件。
 
-從中選出影響最廣、最值得關注的 **5 則事件**，優先選擇：
+從中選出影響最廣、最值得關注的 **{top_n} 則事件**，優先選擇：
 - AI / ML 重大進展或產品發布
 - 雲端、平台、開發工具的重要更新
 - 資安漏洞或重大事件
@@ -76,7 +76,7 @@ def analyze(articles: list[dict], settings: dict) -> list[dict]:
     client = genai.Client(api_key=api_key)
 
     articles_json = _build_articles_payload(articles)
-    prompt        = PROMPT_TEMPLATE.format(articles_json=articles_json)
+    prompt        = PROMPT_TEMPLATE.format(articles_json=articles_json, top_n=top_n)
 
     logger.info(f"呼叫 Gemini API（model={model}，文章數={len(articles)}）")
 

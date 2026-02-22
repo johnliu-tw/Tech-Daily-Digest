@@ -78,7 +78,7 @@ def load_settings() -> dict:
     settings.setdefault("crawler", {}).setdefault("max_content_chars", 500)
     settings.setdefault("crawler", {}).setdefault("request_timeout", 15)
     settings.setdefault("crawler", {}).setdefault("user_agent", "TechCrawlerBot/1.0")
-    settings.setdefault("output", {}).setdefault("top_events", 5)
+    settings.setdefault("output", {}).setdefault("top_events", 7)
 
     return settings
 

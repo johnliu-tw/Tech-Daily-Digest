@@ -24,7 +24,7 @@ def _format_message(events: list[dict], articles: list[dict]) -> str:
         "─" * 22,
     ]
 
-    icons = ["1.", "2.", "3.", "4.", "5."]
+    icons = ["1.", "2.", "3.", "4.", "5.", "6.", "7."]
 
     for i, event in enumerate(events):
         icon = icons[i] if i < len(icons) else f"{i+1}."

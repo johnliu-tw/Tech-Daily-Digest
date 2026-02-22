@@ -24,7 +24,7 @@
     "_comment_ua": "web 爬取時建議用接近瀏覽器的 User-Agent，避免被擋"
   },
   "output": {
-    "top_events": 5,
+    "top_events": 7,
     "summary_language": "zh-TW",
     "_comment": "摘要語言: 'zh-TW'（繁中）或 'en'（英文）"
   }

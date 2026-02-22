@@ -114,6 +114,30 @@
       "url": "https://juejin.cn/rss",
       "type": "rss",
       "category": "tech"
+    },
+    {
+      "name": "r/programming",
+      "url": "https://www.reddit.com/r/programming/new/.rss",
+      "type": "rss",
+      "category": "tech"
+    },
+    {
+      "name": "r/webdev",
+      "url": "https://www.reddit.com/r/webdev/new/.rss",
+      "type": "rss",
+      "category": "devtools"
+    },
+    {
+      "name": "r/ClaudeAI",
+      "url": "https://www.reddit.com/r/ClaudeAI/new/.rss",
+      "type": "rss",
+      "category": "ai"
+    },
+    {
+      "name": "r/ExperiencedDevs",
+      "url": "https://www.reddit.com/r/ExperiencedDevs/new/.rss",
+      "type": "rss",
+      "category": "engineering"
     }
   ]
 }
