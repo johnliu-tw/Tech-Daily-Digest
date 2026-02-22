@@ -365,10 +365,10 @@ def _scrape_article(url: str, max_chars: int,
         html,
         url=url,
         output_format="json",
-        include_metadata=True,
+        with_metadata=True,         # trafilatura 2.x API（舊版為 include_metadata）
         include_comments=False,
-        no_fallback=False,          # 允許 fallback 策略
-        favor_precision=False,      # 允許稍低精準度以提高召回率
+        no_fallback=False,
+        favor_recall=True,          # 提高召回率，適合部落格頁面
     )
 
     if raw_json:

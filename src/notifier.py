@@ -1,11 +1,11 @@
 """
 notifier.py - 透過 LINE Messaging API 傳送摘要
 支援：私人訊息（pushMessage）與群組訊息
-LINE bot 設定說明：https://developers.line.biz/en/docs/messaging-api/
 """
 
 import requests
 import logging
+from collections import Counter
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
@@ -13,60 +13,78 @@ logger = logging.getLogger(__name__)
 LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push"
 
 
-def _format_message(events: list[dict]) -> str:
+def _format_message(events: list[dict], articles: list[dict]) -> str:
     """
     將 5 大事件格式化成 LINE 純文字訊息
-    LINE 單則訊息上限 5000 字元，此格式約 1500 字元
+    LINE 單則訊息上限 5000 字元
     """
-    now = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    tw_time = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     lines = [
-        f"📡 Tech Daily Digest — {now}",
-        f"🎯 CTO 必看 5 大科技事件",
-        "━" * 20,
+        f"Tech Daily Digest  {tw_time}",
+        "─" * 22,
     ]
 
-    icons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+    icons = ["1.", "2.", "3.", "4.", "5."]
 
     for i, event in enumerate(events):
         icon = icons[i] if i < len(icons) else f"{i+1}."
-        lines.append(f"\n{icon} {event.get('title', 'N/A')}")
-
         category = event.get("category", "")
-        if category:
-            lines.append(f"   [{category}]")
+        title    = event.get("title", "N/A")
+        summary  = event.get("summary", "")
+        url      = event.get("url", "")
+        source   = event.get("source", "")
 
-        summary = event.get("summary", "")
+        lines.append(f"\n{icon} [{category}] {title}")
         if summary:
-            lines.append(f"   {summary}")
-
-        url = event.get("url", "")
+            lines.append(f"{summary}")
         if url:
-            lines.append(f"   🔗 {url}")
-
-        source = event.get("source", "")
+            lines.append(f"→ {url}")
         if source:
-            lines.append(f"   📰 來源: {source}")
+            lines.append(f"via {source}")
 
-    lines.append("\n━" * 20)
-    lines.append("⚙️ Powered by Claude Haiku + GitHub Actions")
+    # ── 統計 footer ──────────────────────────────────────
+    lines.append("\n" + "─" * 22)
+
+    source_counts = Counter(a["source"] for a in articles)
+    total = sum(source_counts.values())
+    active_sources = sorted(
+        [(src, cnt) for src, cnt in source_counts.items() if cnt > 0],
+        key=lambda x: -x[1]
+    )
+
+    lines.append(f"本次分析：{len(source_counts)} 個來源 / {total} 篇文章")
+    # 列出有抓到文章的來源
+    src_parts = [f"{src}({cnt})" for src, cnt in active_sources]
+    if src_parts:
+        # 分行避免太長
+        chunk, row = [], []
+        for part in src_parts:
+            row.append(part)
+            if len("  ".join(row)) > 36:
+                chunk.append("  ".join(row[:-1]))
+                row = [part]
+        if row:
+            chunk.append("  ".join(row))
+        lines.extend(chunk)
 
     return "\n".join(lines)
 
 
-def send_to_line(events: list[dict], settings: dict) -> bool:
+def send_to_line(events: list[dict], articles: list[dict], settings: dict) -> bool:
     """
     透過 LINE Messaging API 推送訊息
+    articles: 本次所有抓取文章（用於統計 footer）
     回傳 True 代表成功
     """
-    line_cfg = settings.get("line", {})
-    token = line_cfg.get("channel_access_token", "")
+    line_cfg  = settings.get("line", {})
+    token     = line_cfg.get("channel_access_token", "")
     target_id = line_cfg.get("target_id", "")
 
     if not token or not target_id:
         logger.error("LINE 設定不完整：缺少 channel_access_token 或 target_id")
         return False
 
-    message_text = _format_message(events)
+    message_text = _format_message(events, articles)
 
     # LINE 單則訊息上限 5000 字元
     if len(message_text) > 4999:
@@ -74,14 +92,8 @@ def send_to_line(events: list[dict], settings: dict) -> bool:
 
     payload = {
         "to": target_id,
-        "messages": [
-            {
-                "type": "text",
-                "text": message_text,
-            }
-        ],
+        "messages": [{"type": "text", "text": message_text}],
     }
-
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",

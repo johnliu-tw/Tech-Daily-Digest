@@ -145,7 +145,7 @@ def main():
 
     # 5. 傳送 LINE 訊息
     logger.info(f"步驟 3/3：傳送 {len(events)} 個事件到 LINE")
-    success = send_to_line(events, settings)
+    success = send_to_line(events, articles, settings)
 
     if success:
         logger.info("=== 執行完成 ✓ ===")

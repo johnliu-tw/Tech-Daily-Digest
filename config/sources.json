@@ -2,7 +2,7 @@
   "_doc": "type 欄位: 'rss'=RSS/Atom feed | 'sitemap'=XML sitemap | 'web'=通用網頁爬取",
   "sources": [
     {
-      "_section": "RSS feeds（效率最高，優先使用）",
+      "_section": "RSS feeds",
       "name": "Hacker News",
       "url": "https://news.ycombinator.com/rss",
       "type": "rss",
@@ -45,21 +45,69 @@
       "category": "devtools"
     },
     {
-      "_section": "Sitemap（有 sitemap 但無 RSS 的網站）",
+      "name": "FB Engineering",
+      "url": "https://engineering.fb.com/feed/",
+      "type": "rss",
+      "category": "engineering"
+    },
+    {
+      "name": "Slack Engineering",
+      "url": "https://slack.engineering/feed/",
+      "type": "rss",
+      "category": "engineering"
+    },
+    {
+      "name": "Google Developers Blog",
+      "url": "https://developers.googleblog.com/feeds/posts/default?alt=rss",
+      "type": "rss",
+      "category": "devtools"
+    },
+    {
+      "name": "PlanetScale Blog",
+      "url": "https://planetscale.com/blog/rss.xml",
+      "type": "rss",
+      "category": "engineering"
+    },
+    {
+      "name": "ClickHouse Blog",
+      "url": "https://clickhouse.com/rss.xml",
+      "type": "rss",
+      "category": "engineering"
+    },
+    {
+      "name": "LeadDev",
+      "url": "https://leaddev.com/feed",
+      "type": "rss",
+      "category": "engineering"
+    },
+    {
+      "_section": "Sitemap",
       "name": "Google AI Blog",
       "url": "https://blog.google/sitemap.xml",
       "type": "sitemap",
       "category": "ai"
     },
     {
-      "_section": "Web 通用爬取（無 RSS / 無 sitemap 的網站）",
-      "_doc": "article_selector 可選；省略時自動偵測文章連結。max_articles 限制抓取數量",
+      "_section": "Web 通用爬取",
       "name": "iThome 即時新聞",
       "url": "https://www.ithome.com.tw/latest",
       "type": "web",
       "category": "tech",
       "article_selector": "h3.title > a",
       "max_articles": 15
+    },
+    {
+      "name": "Figma Blog",
+      "url": "https://www.figma.com/blog/",
+      "type": "web",
+      "category": "devtools",
+      "max_articles": 15
+    },
+    {
+      "name": "Mercari Engineering",
+      "url": "https://engineering.mercari.com/en/blog/feed.xml",
+      "type": "rss",
+      "category": "engineering"
     }
   ]
 }
