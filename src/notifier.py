@@ -13,9 +13,30 @@ logger = logging.getLogger(__name__)
 LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push"
 
 
-def _format_message(events: list[dict], articles: list[dict]) -> str:
+def _append_section(lines: list[str], heading: str, items: list[dict]) -> None:
+    """把一個區塊（標題 + 事件列表）追加到訊息行陣列。items 為空時整段略過。"""
+    if not items:
+        return
+    lines.append(f"\n◆ {heading}")
+    for i, event in enumerate(items):
+        category = event.get("category", "")
+        title    = event.get("title", "N/A")
+        summary  = event.get("summary", "")
+        url      = event.get("url", "")
+        source   = event.get("source", "")
+
+        lines.append(f"\n{i+1}. [{category}] {title}")
+        if summary:
+            lines.append(f"{summary}")
+        if url:
+            lines.append(f"→ {url}")
+        if source:
+            lines.append(f"via {source}")
+
+
+def _format_message(events: dict, articles: list[dict]) -> str:
     """
-    將 5 大事件格式化成 LINE 純文字訊息
+    將兩區塊事件（main + beginner）格式化成 LINE 純文字訊息
     LINE 單則訊息上限 5000 字元
     """
     tw_time = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -24,23 +45,14 @@ def _format_message(events: list[dict], articles: list[dict]) -> str:
         "─" * 22,
     ]
 
-    icons = ["1.", "2.", "3.", "4.", "5.", "6.", "7."]
+    main_items     = events.get("main", []) or []
+    beginner_items = events.get("beginner", []) or []
 
-    for i, event in enumerate(events):
-        icon = icons[i] if i < len(icons) else f"{i+1}."
-        category = event.get("category", "")
-        title    = event.get("title", "N/A")
-        summary  = event.get("summary", "")
-        url      = event.get("url", "")
-        source   = event.get("source", "")
+    _append_section(lines, "今日精選", main_items)
 
-        lines.append(f"\n{icon} [{category}] {title}")
-        if summary:
-            lines.append(f"{summary}")
-        if url:
-            lines.append(f"→ {url}")
-        if source:
-            lines.append(f"via {source}")
+    if beginner_items:
+        lines.append("\n" + "─" * 22)
+        _append_section(lines, "新手友善（0-4 年工程師）", beginner_items)
 
     # ── 統計 footer ──────────────────────────────────────
     lines.append("\n" + "─" * 22)
@@ -70,7 +82,7 @@ def _format_message(events: list[dict], articles: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def send_to_line(events: list[dict], articles: list[dict], settings: dict) -> bool:
+def send_to_line(events: dict, articles: list[dict], settings: dict) -> bool:
     """
     透過 LINE Messaging API 推送訊息
     articles: 本次所有抓取文章（用於統計 footer）
@@ -85,6 +97,7 @@ def send_to_line(events: list[dict], articles: list[dict], settings: dict) -> bo
         return False
 
     message_text = _format_message(events, articles)
+    logger.info(f"LINE 訊息長度: {len(message_text)} 字元")
 
     # LINE 單則訊息上限 5000 字元
     if len(message_text) > 4999:

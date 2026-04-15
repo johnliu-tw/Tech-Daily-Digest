@@ -125,18 +125,28 @@ def main():
         logger.error(f"分析失敗: {e}")
         sys.exit(1)
 
-    if not events:
+    main_events     = events.get("main", []) if isinstance(events, dict) else []
+    beginner_events = events.get("beginner", []) if isinstance(events, dict) else []
+
+    if not main_events and not beginner_events:
         logger.warning("Gemini 未回傳有效事件，結束執行")
         sys.exit(0)
 
     # 4. 印出分析結果
-    print(f"\n{'='*60}")
-    print("Gemini 分析結果 — CTO 必看 5 大事件")
-    print('='*60)
-    for e in events:
-        print(f"\n#{e.get('rank','?')} [{e.get('category','')}] {e.get('title','')}")
-        print(f"   {e.get('summary','')}")
-        print(f"   來源: {e.get('source','')}  |  {e.get('url','')}")
+    def _print_section(heading: str, items: list[dict]) -> None:
+        print(f"\n{'='*60}")
+        print(heading)
+        print('='*60)
+        if not items:
+            print("（無）")
+            return
+        for e in items:
+            print(f"\n#{e.get('rank','?')} [{e.get('category','')}] {e.get('title','')}")
+            print(f"   {e.get('summary','')}")
+            print(f"   來源: {e.get('source','')}  |  {e.get('url','')}")
+
+    _print_section(f"Gemini 分析結果 — 今日精選（{len(main_events)} 則）", main_events)
+    _print_section(f"Gemini 分析結果 — 新手友善（{len(beginner_events)} 則）", beginner_events)
     print()
 
     if args.dry_run:
@@ -144,7 +154,7 @@ def main():
         sys.exit(0)
 
     # 5. 傳送 LINE 訊息
-    logger.info(f"步驟 3/3：傳送 {len(events)} 個事件到 LINE")
+    logger.info(f"步驟 3/3：傳送 main={len(main_events)} + beginner={len(beginner_events)} 個事件到 LINE")
     success = send_to_line(events, articles, settings)
 
     if success:

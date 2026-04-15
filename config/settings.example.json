@@ -25,6 +25,8 @@
   },
   "output": {
     "top_events": 7,
+    "top_beginner_events": 3,
+    "_comment_beginner": "新手友善區塊最多幾則（0-4 年經驗工程師導向，寧缺勿濫）",
     "summary_language": "zh-TW",
     "_comment": "摘要語言: 'zh-TW'（繁中）或 'en'（英文）"
   }
