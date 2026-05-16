@@ -153,8 +153,6 @@ def _extract_article_links(html: str, base_url: str, selector: Optional[str]) ->
     """
     try:
         soup = BeautifulSoup(html, "lxml")
-        base_domain = urlparse(base_url).netloc
-
         if selector:
             anchors = soup.select(selector)
         else:
@@ -370,7 +368,6 @@ def _scrape_article(url: str, max_chars: int,
         no_fallback=False,
         favor_recall=True,          # 提高召回率，適合部落格頁面
     )
-
     if raw_json:
         try:
             data = json.loads(raw_json)
