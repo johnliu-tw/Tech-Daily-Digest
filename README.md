@@ -66,6 +66,8 @@
 | `sitemap` | XML sitemap（含 Google News 格式）| 有 sitemap 但無 RSS 時使用 |
 | `web` | 通用網頁（trafilatura 自動提取）| 最後手段，每篇多一次 HTTP request |
 
+爬蟲只收錄回溯時數內的文章（預設 24 小時）。低頻更新來源在週末或沒有新文章時顯示 `0 篇` 是正常結果；日誌會同時列出 feed 項目數、超出區間篇數和日期不明篇數，方便判斷是否真的抓取失敗。Reddit 來源可在來源設定用 `request_interval_seconds` 控制同網域請求間隔；目前設為 60 秒以避免連續請求觸發限流。
+
 ### 2. 取得 API 金鑰
 
 #### Gemini API Key

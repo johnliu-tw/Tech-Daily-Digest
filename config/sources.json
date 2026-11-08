@@ -28,7 +28,7 @@
     },
     {
       "name": "MIT Technology Review",
-      "url": "https://www.technologyreview.com/stories.rss",
+      "url": "https://www.technologyreview.com/feed/",
       "type": "rss",
       "category": "research"
     },
@@ -88,6 +88,21 @@
       "category": "ai"
     },
     {
+      "_section": "Security 研究",
+      "name": "Google Project Zero",
+      "url": "https://projectzero.google/",
+      "type": "web",
+      "category": "security",
+      "article_selector": "h3.post-title a, h2.post-title a, .post-title a",
+      "max_articles": 10
+    },
+    {
+      "name": "GitHub Security Lab",
+      "url": "https://github.blog/tag/github-security-lab/feed/",
+      "type": "rss",
+      "category": "security"
+    },
+    {
       "_section": "Web 通用爬取",
       "name": "iThome 即時新聞",
       "url": "https://www.ithome.com.tw/latest",
@@ -114,7 +129,7 @@
     },
     {
       "name": "Mercari Engineering",
-      "url": "https://engineering.mercari.com/en/blog/feed.xml",
+      "url": "https://engineering.mercari.com/blog/feed.xml",
       "type": "rss",
       "category": "engineering"
     },
@@ -128,25 +143,29 @@
       "name": "r/programming",
       "url": "https://www.reddit.com/r/programming/new/.rss",
       "type": "rss",
-      "category": "tech"
+      "category": "tech",
+      "request_interval_seconds": 60
     },
     {
       "name": "r/webdev",
       "url": "https://www.reddit.com/r/webdev/new/.rss",
       "type": "rss",
-      "category": "devtools"
+      "category": "devtools",
+      "request_interval_seconds": 60
     },
     {
       "name": "r/ClaudeAI",
       "url": "https://www.reddit.com/r/ClaudeAI/new/.rss",
       "type": "rss",
-      "category": "ai"
+      "category": "ai",
+      "request_interval_seconds": 60
     },
     {
       "name": "r/ExperiencedDevs",
       "url": "https://www.reddit.com/r/ExperiencedDevs/new/.rss",
       "type": "rss",
-      "category": "engineering"
+      "category": "engineering",
+      "request_interval_seconds": 60
     }
   ]
 }

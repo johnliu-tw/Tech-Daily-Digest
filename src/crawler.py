@@ -11,12 +11,14 @@ crawler.py - 通用內容抓取器，支援三種模式：
   4. URL 中的日期樣式（/2025/02/21/、/20250221/ 等）
 """
 
+import calendar
 import json
 import logging
 import re
 import time as time_module
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
+from email.utils import parsedate_to_datetime
 from typing import Optional
 from urllib.parse import urljoin, urlparse
 
@@ -49,9 +51,36 @@ _DATE_IN_URL = re.compile(
 def _make_session(user_agent: str, timeout: int) -> requests.Session:
     s = requests.Session()
     s.headers.update({"User-Agent": user_agent})
-    s.request = lambda method, url, **kw: requests.Session.request(
-        s, method, url, timeout=kw.pop("timeout", timeout), **kw
-    )
+    s._host_last_request = {}
+    s._host_intervals = {}
+
+    def request(method, url, **kw):
+        host = urlparse(url).netloc.lower()
+        now = time_module.monotonic()
+        ready_at = s._host_last_request.get(host, 0)
+        if ready_at > now:
+            time_module.sleep(ready_at - now)
+        response = requests.Session.request(
+            s, method, url, timeout=kw.pop("timeout", timeout), **kw
+        )
+        interval = s._host_intervals.get(host, 0)
+        retry_after = response.headers.get("Retry-After") if response.status_code == 429 else None
+        try:
+            interval = max(interval, float(retry_after or 0))
+        except ValueError:
+            if retry_after:
+                try:
+                    retry_at = parsedate_to_datetime(retry_after)
+                    interval = max(
+                        interval,
+                        (_to_utc(retry_at) - datetime.now(timezone.utc)).total_seconds(),
+                    )
+                except (TypeError, ValueError):
+                    pass
+        s._host_last_request[host] = time_module.monotonic() + interval
+        return response
+
+    s.request = request
     return s
 
 
@@ -206,7 +235,9 @@ def _feedparser_entry_date(entry) -> Optional[datetime]:
         val = getattr(entry, attr, None)
         if val:
             try:
-                ts = time_module.mktime(val)
+                # feedparser returns a UTC struct_time; mktime would treat it
+                # as local time and shift publication dates by the host offset.
+                ts = calendar.timegm(val)
                 return datetime.fromtimestamp(ts, tz=timezone.utc)
             except Exception:
                 pass
@@ -231,11 +262,26 @@ def fetch_rss(source: dict, cutoff: datetime, max_per_source: int,
         return []
 
     articles = []
+    missing_dates = 0
+    outside_window = 0
     for entry in feed.entries:
         if len(articles) >= max_per_source:
             break
         pub_dt = _feedparser_entry_date(entry)
-        if pub_dt is None or pub_dt < cutoff:
+        if pub_dt is None:
+            # Some feeds omit dates. Recover one from the article page instead
+            # of silently discarding a potentially new post.
+            link = getattr(entry, "link", "").strip()
+            if link:
+                detail = _scrape_article(link, max_chars, session)
+                pub_dt = detail.get("pub_dt") if detail else None
+                if detail:
+                    entry.summary = detail.get("summary") or getattr(entry, "summary", "")
+            if pub_dt is None:
+                missing_dates += 1
+                continue
+        if pub_dt < cutoff:
+            outside_window += 1
             continue
 
         raw = ""
@@ -253,7 +299,10 @@ def fetch_rss(source: dict, cutoff: datetime, max_per_source: int,
             "category":     source.get("category", "tech"),
         })
 
-    logger.info(f"[{source['name']}] RSS: {len(articles)} 篇")
+    logger.info(
+        f"[{source['name']}] RSS: {len(articles)} 篇 "
+        f"(feed entries={len(feed.entries)}, 超出回溯區間={outside_window}, 日期不明={missing_dates})"
+    )
     return articles
 
 
@@ -289,6 +338,8 @@ def fetch_sitemap(source: dict, cutoff: datetime, max_per_source: int,
     """
     sitemap_urls = _resolve_sitemaps(source["url"], session)
     articles = []
+    sitemap_entries = 0
+    outside_window = 0
 
     for sm_url in sitemap_urls:
         if len(articles) >= max_per_source:
@@ -302,6 +353,7 @@ def fetch_sitemap(source: dict, cutoff: datetime, max_per_source: int,
             continue
 
         for url_el in root.iter(f"{{{NS['sm']}}}url"):
+            sitemap_entries += 1
             if len(articles) >= max_per_source:
                 break
 
@@ -320,6 +372,8 @@ def fetch_sitemap(source: dict, cutoff: datetime, max_per_source: int,
                 if lastmod is not None and lastmod.text:
                     pub_dt = _parse_date_str(lastmod.text)
             if pub_dt is None or pub_dt < cutoff:
+                if pub_dt is not None:
+                    outside_window += 1
                 continue
 
             # 取標題：Google News sitemap 有 <news:title>
@@ -337,7 +391,10 @@ def fetch_sitemap(source: dict, cutoff: datetime, max_per_source: int,
                 "category":     source.get("category", "tech"),
             })
 
-    logger.info(f"[{source['name']}] Sitemap: {len(articles)} 篇")
+    logger.info(
+        f"[{source['name']}] Sitemap: {len(articles)} 篇 "
+        f"(sitemap URLs={sitemap_entries}, 超出回溯區間={outside_window})"
+    )
     return articles
 
 
@@ -421,6 +478,8 @@ def fetch_web(source: dict, cutoff: datetime, max_per_source: int,
     # Step 2 & 3: 逐篇抓取並過濾
     articles = []
     checked  = 0
+    outside_window = 0
+    missing_dates = 0
 
     for link in links:
         if len(articles) >= max_per_source:
@@ -438,8 +497,10 @@ def fetch_web(source: dict, cutoff: datetime, max_per_source: int,
         # 若完全找不到日期，策略：保留文章讓 Claude 判斷（標記為 unknown）
         if pub_dt is None:
             logger.debug(f"  [日期不明] {result['title'] or link}")
+            missing_dates += 1
             pub_dt_str = "unknown"
         elif pub_dt < cutoff:
+            outside_window += 1
             continue
         else:
             pub_dt_str = pub_dt.isoformat()
@@ -457,7 +518,10 @@ def fetch_web(source: dict, cutoff: datetime, max_per_source: int,
         # 禮貌性延遲，避免對目標網站造成壓力
         time_module.sleep(0.5)
 
-    logger.info(f"[{source['name']}] Web: 檢查 {checked} 篇，收錄 {len(articles)} 篇")
+    logger.info(
+        f"[{source['name']}] Web: 檢查 {checked} 篇，收錄 {len(articles)} 篇 "
+        f"(超出回溯區間={outside_window}, 日期不明={missing_dates})"
+    )
     return articles
 
 
@@ -490,6 +554,12 @@ def crawl_all(sources_config: dict, settings: dict) -> list[dict]:
             continue
 
         src_type = source.get("type", "rss")
+        host = urlparse(source["url"]).netloc.lower()
+        interval = source.get("request_interval_seconds", 0)
+        if interval:
+            session._host_intervals[host] = max(
+                session._host_intervals.get(host, 0), interval
+            )
         fetcher  = dispatch.get(src_type)
 
         if fetcher is None:
