@@ -2,8 +2,8 @@
   "_comment": "複製此檔案為 settings.json 並填入你的 API 金鑰（本機測試用）。正式部署請使用 GitHub Secrets 環境變數。",
   "gemini": {
     "api_key": "AIzaSy-xxxx",
-    "model": "gemini-3-flash-preview",
-    "_comment_model": "推薦 gemini-3-flash-preview（thinking model，品質最佳）。需 billing 帳戶。gemini-2.0-flash 可用免費額度。",
+    "model": "gemini-3.5-flash-lite",
+    "_comment_model": "推薦 gemini-3.5-flash-lite（thinking model，品質最佳）。需 billing 帳戶。gemini-2.0-flash 可用免費額度。",
     "_comment_key": "從 https://aistudio.google.com/apikey 取得免費 API Key"
   },
   "line": {
